@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<style>
+  body {
+    font-family: 'PingFang TC', 'Microsoft JhengHei', '微軟正黑體', sans-serif;
+    background-color: #0d0f12;
+    color: #e2e8f0;
+    display: flex;
+    justify-content: center;
+    padding: 30px;
+    margin: 0;
+  }
+  .card {
+    background-color: #161a22;
+    width: 820px;
+    padding: 36px 40px;
+    border-radius: 14px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.85);
+    border-top: 6px solid #e53e3e;
+    border-bottom: 2px solid #2d3748;
+  }
+  .header {
+    text-align: center;
+    margin-bottom: 26px;
+  }
+  .title {
+    color: #ff5252;
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    margin: 0 0 8px 0;
+  }
+  .subtitle {
+    color: #94a3b8;
+    font-size: 16px;
+    margin: 0;
+  }
+  .columns {
+    display: flex;
+    gap: 18px;
+    margin-bottom: 24px;
+  }
+  .column {
+    flex: 1;
+    background-color: #1f2430;
+    padding: 22px;
+    border-radius: 10px;
+    border: 1px solid #2d3748;
+  }
+  h2 {
+    color: #ff8a80;
+    font-size: 18px;
+    font-weight: 700;
+    border-bottom: 1px solid #334155;
+    padding-bottom: 10px;
+    margin-top: 0;
+    margin-bottom: 14px;
+  }
+  ul {
+    padding-left: 18px;
+    margin: 0;
+  }
+  li {
+    margin-bottom: 12px;
+    line-height: 1.6;
+    font-size: 14px;
+  }
+  .highlight {
+    color: #ff6b6b;
+    font-weight: 700;
+  }
+
+  /* 底部對比區塊 */
+  .comparison-box {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+  .comp-item {
+    flex: 1;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .comp-ma {
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    color: #86efac;
+  }
+  .comp-dpp {
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    color: #fca5a5;
+  }
+
+  /* 解套推演區塊 */
+  .solution-panel {
+    background: #1a1e29;
+    border: 1px solid #3b4252;
+    border-radius: 10px;
+    padding: 18px 20px;
+  }
+  .solution-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #f1f5f9;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .solution-title::before {
+    content: "";
+    display: inline-block;
+    width: 4px;
+    height: 16px;
+    background-color: #3b82f6;
+    border-radius: 2px;
+  }
+  .timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .step {
+    display: flex;
+    gap: 12px;
+    background: rgba(15, 23, 42, 0.6);
+    padding: 10px 14px;
+    border-radius: 6px;
+    border-left: 3px solid #64748b;
+    font-size: 13.5px;
+    line-height: 1.5;
+  }
+  .step-label {
+    min-width: 108px;
+    font-weight: 700;
+    color: #93c5fd;
+  }
+  .step-desc {
+    color: #cbd5e1;
+  }
+  .step-highlight {
+    border-left-color: #e53e3e;
+    background: rgba(229, 62, 62, 0.1);
+  }
+  .step-highlight .step-label {
+    color: #fca5a5;
+  }
+  .step-highlight .step-desc {
+    color: #fff;
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="header">
+    <h1 class="title">台灣死刑是如何被「實質沒收」的？</h1>
+
+  </div>
+
+  <div class="columns">
+    <div class="column">
+      <h2>🔒 判死刑的「三道鎖」演進</h2>
+      <ul>
+        <li><span class="highlight">第一道鎖：2009 兩公約 (馬政府)</span><br>限制「情節最重大之罪」才能判死。(把關變嚴，但定讞仍依法執行)</li>
+        <li><span class="highlight">第二道鎖：2012 創設生死辯 (最高法院)</span><br>強制開庭。淪為廢死律師用「精神鑑定、教化可能」無限發回更審的工具。</li>
+        <li><span class="highlight">第三道鎖：2016後 實質免死 (蔡政府)</span><br>縱火燒死9人也算「不確定故意」，新發生的極端鐵案連死刑都不判，直接降級無期徒刑。</li>
+      </ul>
+    </div>
+
+    <div class="column">
+      <h2>🛑 為什麼「生死辯」現在廢不掉？</h2>
+      <ul>
+        <li><span class="highlight">過去 (2012~2023)：只是法院內部規矩</span><br>本意是為了防冤獄，理論上法院隨時可以開會取消。</li>
+        <li><span class="highlight">現在 (2024.09)：升級成「憲法神主牌」</span><br>執政黨趁失去國會多數，趕在大法官卸任前，透過【113年憲判字第8號】直接把「強制生死辯」寫進憲法判決。</li>
+        <li><span class="highlight">結果：</span>現在要廢除，只能靠「修憲」或「換一批大法官推翻前案」，難如登天！</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 執政成效對比 -->
+  <div class="comparison-box">
+    <div class="comp-item comp-ma">
+      <b>前政府：</b> 前端嚴格審判，後端依法執行（完成執行 33 件）
+    </div>
+    <div class="comp-item comp-ma">
+      <b>現任政府：</b> 前端嚴格審判，後端用釋憲卡關（只執行 2 件，還病死 5 個）
+    </div>
+  </div>
+
+  <!-- 2028 戰略解套路徑 -->
+  <div class="solution-panel">
+    <div class="solution-title">唯一解套途徑：大法官實質換血，翻轉憲政架構</div>
+    <div class="timeline">
+      <div class="step">
+        <span class="step-label">第一批（7人）</span>
+        <span class="step-desc">2024 年 10 月卸任。遭立法院退回，因任期個別計算（一就職就綁到 2032 年），在野嚴格阻擋護航名單。</span>
+      </div>
+      <div class="step">
+        <span class="step-label">第二批（4人）</span>
+        <span class="step-desc">將於 2027 年 9 月卸任。若執政黨仍執意提名酬庸與政治打手，預期國會將繼續行使同意權否決。</span>
+      </div>
+      <div class="step step-highlight">
+        <span class="step-label">2028 終局戰</span>
+        <span class="step-desc">若在野黨重新完全執政，可一次提名 11 席全新大法官，直接掌握三分之二絕對多數，重新受理並推翻【113年憲判字第8號】判決！</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

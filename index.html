@@ -8,20 +8,20 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
         :root {
-            --bg-color: #121212;
-            --container-bg: #1e1e1e;
-            --text-main: #e0e0e0;
-            --text-muted: #9e9e9e;
-            --border-color: #333333;
-            --accent-blue: #3a7bd5;
-            --header-bg: #2a2a2a;
-            --row-hover: #252525;
-            --danger-text: #ef5350;
-            --success-text: #66bb6a;
-            --badge-executed-bg: rgba(239, 83, 80, 0.15);
-            --badge-executed-color: #ef5350;
-            --badge-unexecuted-bg: rgba(102, 187, 106, 0.15);
-            --badge-unexecuted-color: #66bb6a;
+            --bg-color: #0d0d0d;
+            --container-bg: #1a1a1a;
+            --text-main: #ffffff;         /* 提升至純白，更亮 */
+            --text-muted: #b0b0b0;        /* 提升次要文字亮度 */
+            --border-color: #404040;      /* 加強邊框對比 */
+            --accent-blue: #4a90e2;       /* 更明亮的藍色 */
+            --header-bg: #262626;
+            --row-hover: #2f2f2f;
+            --danger-text: #ff6b6b;
+            --success-text: #51cf66;
+            --badge-executed-bg: rgba(255, 107, 107, 0.2);
+            --badge-executed-color: #ff6b6b;
+            --badge-unexecuted-bg: rgba(81, 207, 102, 0.2);
+            --badge-unexecuted-color: #51cf66;
         }
         body {
             background-color: var(--bg-color);
@@ -37,16 +37,17 @@
         }
         h1, h2 {
             text-align: center;
-            font-weight: 300;
+            font-weight: 400;             /* 微調字重讓標題更顯眼 */
             letter-spacing: 1px;
             margin-bottom: 30px;
+            color: #ffffff;
         }
         h2 {
-            font-size: 1.2rem;
+            font-size: 1.25rem;
             color: var(--accent-blue);
             text-align: left;
-            border-left: 3px solid var(--accent-blue);
-            padding-left: 10px;
+            border-left: 4px solid var(--accent-blue);
+            padding-left: 12px;
             margin-top: 40px;
             margin-bottom: 15px;
         }
@@ -61,18 +62,18 @@
             border-radius: 8px;
             padding: 20px;
             text-align: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.4);
             border: 1px solid var(--border-color);
         }
         .stat-card h3 {
             margin: 0 0 10px 0;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             color: var(--text-muted);
         }
         .stat-card .number {
-            font-size: 1.8rem;
-            font-weight: 600;
-            color: var(--accent-blue);
+            font-size: 2rem;
+            font-weight: 700;
+            color: #ffffff;
         }
         table {
             width: 100%;
@@ -80,19 +81,21 @@
             background-color: var(--container-bg);
             border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.4);
             margin-bottom: 30px;
+            border: 1px solid var(--border-color);
         }
         th, td {
-            padding: 12px 20px;
+            padding: 14px 20px;
             text-align: left;
             border-bottom: 1px solid var(--border-color);
+            color: var(--text-main);
         }
         th {
             background-color: var(--header-bg);
             color: var(--accent-blue);
-            font-weight: 500;
-            font-size: 0.95rem;
+            font-weight: 600;
+            font-size: 1rem;
             white-space: nowrap;
         }
         tr:last-child td {
@@ -102,36 +105,37 @@
             background-color: var(--row-hover);
         }
         .highlight {
-            color: var(--text-main);
-            font-weight: 500;
+            color: #ffffff;
+            font-weight: 600;
         }
         .badge-executed {
             background-color: var(--badge-executed-bg);
             color: var(--badge-executed-color);
-            padding: 4px 8px;
+            padding: 5px 10px;
             border-radius: 4px;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             font-weight: 600;
         }
         .badge-unexecuted {
             background-color: var(--badge-unexecuted-bg);
             color: var(--badge-unexecuted-color);
-            padding: 4px 8px;
+            padding: 5px 10px;
             border-radius: 4px;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             font-weight: 600;
         }
         .note {
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             color: var(--text-muted);
             text-align: center;
-            margin-top: 20px;
+            margin-top: 30px;
         }
         #loading {
             text-align: center;
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             color: var(--accent-blue);
             margin: 50px 0;
+            font-weight: 600;
         }
     </style>
 </head>
@@ -175,7 +179,21 @@
             </tbody>
         </table>
 
-        <h2>二、 各死囚聲請次數與執行狀態統計排名</h2>
+        <h2>二、 依年份（2008-2026）案件數量統計</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th width="30%">年份</th>
+                    <th width="40%">案件數量</th>
+                    <th width="30%">佔比</th>
+                </tr>
+            </thead>
+            <tbody id="year-table-body">
+                <!-- 動態填入 -->
+            </tbody>
+        </table>
+
+        <h2>三、 各死囚聲請次數與執行狀態統計排名</h2>
         <table>
             <thead>
                 <tr>
@@ -206,7 +224,7 @@
         "曹添壽", "黃主旺", "王俊欽", "王裕隆"
     ]);
 
-    // 加上時間戳記強制繞過瀏覽器快取，確保讀到最新上傳的 CSV
+    // 加上時間戳記強制繞過瀏覽器快取
     const csvUrl = 'death_row_appeals_ultimate.csv?t=' + Date.now();
 
     Papa.parse(csvUrl, {
@@ -226,31 +244,59 @@
     function processData(data) {
         const totalRecords = data.length;
 
-        // 1. 統計類別
         const categoryCounts = {};
-        // 2. 統計死囚聲請次數
         const inmateCounts = {};
+        const yearCounts = {};
+
+        // 初始化 2008 到 2026 年的統計（預設為 0）
+        for (let y = 2008; y <= 2026; y++) {
+            yearCounts[y] = 0;
+        }
 
         data.forEach(row => {
             const name = row['死囚姓名'] ? row['死囚姓名'].trim() : '未知';
             const category = row['類別'] ? row['類別'].trim() : '未分類';
+            const dateStr = row['裁定時間'] ? row['裁定時間'].trim() : '';
 
             // 計算死囚次數
             inmateCounts[name] = (inmateCounts[name] || 0) + 1;
 
             // 計算類別次數
             categoryCounts[category] = (categoryCounts[category] || 0) + 1;
+
+            // 解析年份 (支援民國轉西元或直接抓取西元年)
+            let year = null;
+            // 嘗試抓取民國年份 (例如: 113年 或 99年)
+            const rocMatch = dateStr.match(/(\d+)\s*年/);
+            if (rocMatch) {
+                const rocYear = parseInt(rocMatch[1]);
+                // 如果年份小於 200，視為民國年轉西元年
+                if (rocYear < 200) {
+                    year = rocYear + 1911;
+                } else {
+                    year = rocYear; // 已經是西元年
+                }
+            } else {
+                // 嘗試直接抓取 4 位數西元年
+                const adMatch = dateStr.match(/(20\d{2}|19\d{2})/);
+                if (adMatch) {
+                    year = parseInt(adMatch[1]);
+                }
+            }
+
+            if (year && year >= 2008 && year <= 2026) {
+                yearCounts[year] = (yearCounts[year] || 0) + 1;
+            }
         });
 
         const uniquePeopleCount = Object.keys(inmateCounts).length;
 
-        // 轉換死囚統計為陣列並排序（按聲請次數由多到少）
+        // 轉換死囚統計並排序
         const sortedInmates = Object.entries(inmateCounts).map(([name, count]) => {
             const isExecuted = executedInmates.has(name);
             return { name, count, isExecuted };
         }).sort((a, b) => b.count - a.count);
 
-        // 計算已執行與未執行人數
         let executedCount = 0;
         let unexecutedCount = 0;
         sortedInmates.forEach(item => {
@@ -277,6 +323,21 @@
                 </tr>
             `;
         });
+
+        // 渲染年份統計表格 (2008-2026)
+        const yearTableBody = document.getElementById('year-table-body');
+        yearTableBody.innerHTML = '';
+        for (let y = 2008; y <= 2026; y++) {
+            const count = yearCounts[y] || 0;
+            const pct = totalRecords > 0 ? ((count / totalRecords) * 100).toFixed(1) : '0.0';
+            yearTableBody.innerHTML += `
+                <tr>
+                    <td class="highlight">${y} 年</td>
+                    <td>${count} 筆</td>
+                    <td>${pct}%</td>
+                </tr>
+            `;
+        }
 
         // 渲染死囚聲請排名表格
         const inmateTableBody = document.getElementById('inmate-table-body');

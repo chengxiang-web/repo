@@ -10,10 +10,10 @@
         :root {
             --bg-color: #0d0d0d;
             --container-bg: #1a1a1a;
-            --text-main: #ffffff;         /* 提升至純白，更亮 */
-            --text-muted: #b0b0b0;        /* 提升次要文字亮度 */
-            --border-color: #404040;      /* 加強邊框對比 */
-            --accent-blue: #4a90e2;       /* 更明亮的藍色 */
+            --text-main: #ffffff;
+            --text-muted: #b0b0b0;
+            --border-color: #404040;
+            --accent-blue: #4a90e2;
             --header-bg: #262626;
             --row-hover: #2f2f2f;
             --danger-text: #ff6b6b;
@@ -37,7 +37,7 @@
         }
         h1, h2 {
             text-align: center;
-            font-weight: 400;             /* 微調字重讓標題更顯眼 */
+            font-weight: 400;
             letter-spacing: 1px;
             margin-bottom: 30px;
             color: #ffffff;
@@ -215,7 +215,7 @@
 </div>
 
 <script>
-    // 已執行名單（36人）
+    // 已執行名單（36人，附伏法年份）
     const executedInmates = {
         "黃麟凱": "2024年", "翁仁賢": "2020年", "李宏基": "2018年", "鄭捷": "2016年", 
         "張俊宏": "2014年", "洪晨耀": "2012年", "柯世銘": "2012年", "張文蔚": "2011年", 
@@ -252,7 +252,6 @@
         const inmateCounts = {};
         const yearCounts = {};
 
-        // 初始化 2008 到 2026 年的統計（預設為 0）
         for (let y = 2008; y <= 2026; y++) {
             yearCounts[y] = 0;
         }
@@ -262,30 +261,17 @@
             const category = row['類別'] ? row['類別'].trim() : '未分類';
             const dateStr = row['裁定時間'] ? row['裁定時間'].trim() : '';
 
-            // 計算死囚次數
             inmateCounts[name] = (inmateCounts[name] || 0) + 1;
-
-            // 計算類別次數
             categoryCounts[category] = (categoryCounts[category] || 0) + 1;
 
-            // 解析年份 (支援民國轉西元或直接抓取西元年)
             let year = null;
-            // 嘗試抓取民國年份 (例如: 113年 或 99年)
             const rocMatch = dateStr.match(/(\d+)\s*年/);
             if (rocMatch) {
                 const rocYear = parseInt(rocMatch[1]);
-                // 如果年份小於 200，視為民國年轉西元年
-                if (rocYear < 200) {
-                    year = rocYear + 1911;
-                } else {
-                    year = rocYear; // 已經是西元年
-                }
+                year = (rocYear < 200) ? (rocYear + 1911) : rocYear;
             } else {
-                // 嘗試直接抓取 4 位數西元年
                 const adMatch = dateStr.match(/(20\d{2}|19\d{2})/);
-                if (adMatch) {
-                    year = parseInt(adMatch[1]);
-                }
+                if (adMatch) year = parseInt(adMatch[1]);
             }
 
             if (year && year >= 2008 && year <= 2026) {
@@ -295,10 +281,9 @@
 
         const uniquePeopleCount = Object.keys(inmateCounts).length;
 
-        // 轉換死囚統計並排序
         const sortedInmates = Object.entries(inmateCounts).map(([name, count]) => {
-            const isExecuted = executedInmates.has(name);
-            return { name, count, isExecuted };
+            const executionYear = executedInmates[name] || null;
+            return { name, count, isExecuted: !!executionYear, executionYear };
         }).sort((a, b) => b.count - a.count);
 
         let executedCount = 0;
@@ -308,13 +293,11 @@
             else unexecutedCount++;
         });
 
-        // 渲染頂部數據卡片
         document.getElementById('stat-total').innerText = totalRecords;
         document.getElementById('stat-people').innerText = uniquePeopleCount + ' 位';
         document.getElementById('stat-executed').innerText = executedCount + ' 位';
         document.getElementById('stat-unexecuted').innerText = unexecutedCount + ' 位';
 
-        // 渲染類別統計表格
         const catTableBody = document.getElementById('category-table-body');
         catTableBody.innerHTML = '';
         Object.entries(categoryCounts).forEach(([cat, count]) => {
@@ -328,7 +311,6 @@
             `;
         });
 
-        // 渲染年份統計表格 (2008-2026)
         const yearTableBody = document.getElementById('year-table-body');
         yearTableBody.innerHTML = '';
         for (let y = 2008; y <= 2026; y++) {
@@ -343,23 +325,25 @@
             `;
         }
 
-        // 渲染死囚聲請排名表格
         const inmateTableBody = document.getElementById('inmate-table-body');
         inmateTableBody.innerHTML = '';
         sortedInmates.forEach((item, index) => {
             const badgeClass = item.isExecuted ? 'badge-executed' : 'badge-unexecuted';
             const badgeText = item.isExecuted ? '已執行（已伏法）' : '未執行';
+            
+            // 如果已執行，在名字後面加上 (執行年份)
+            const displayName = item.isExecuted ? `${item.name} <span style="color: var(--danger-text); font-size: 0.85rem;">(${item.executionYear})</span>` : item.name;
+
             inmateTableBody.innerHTML += `
                 <tr>
                     <td>${index + 1}</td>
-                    <td class="highlight">${item.name}</td>
+                    <td class="highlight">${displayName}</td>
                     <td><span class="${badgeClass}">${badgeText}</span></td>
                     <td>${item.count} 次</td>
                 </tr>
             `;
         });
 
-        // 隱藏讀取動畫，顯示內容
         document.getElementById('loading').style.display = 'none';
         document.getElementById('content').style.display = 'block';
     }

@@ -290,7 +290,7 @@
 
     // 頁面載入時自動透過 Fetch 讀取同目錄下的 CSV
     window.addEventListener('DOMContentLoaded', () => {
-        fetch('death_row_appeals_ultimate.csv')
+        fetch('death_row_appeals_ultimate.csv?t=' + Date.now())
             .then(response => {
                 if (!response.ok) {
                     throw new Error('無法讀取 CSV 檔案 (HTTP 狀態碼: ' + response.status + ')');

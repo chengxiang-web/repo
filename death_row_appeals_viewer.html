@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>死刑案件裁判與不受理決議資料庫</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #334155;
+            --text-muted: #64748b;
+            --primary: #475569;
+            --primary-light: #e2e8f0;
+            --accent: #0f172a;
+            --border-color: #e2e8f0;
+            --tag-bg: #f1f5f9;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 2rem 1rem;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        header h1 {
+            font-size: 2rem;
+            color: var(--accent);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        header p {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            background: var(--card-bg);
+            padding: 1.25rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+        }
+        
+        .search-box, .filter-box {
+            flex: 1;
+            min-width: 250px;
+        }
+        
+        label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+        
+        input[type="text"], select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            background-color: #fff;
+            color: var(--text-main);
+            transition: all 0.2s ease;
+        }
+        
+        input[type="text"]:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(71, 85, 105, 0.1);
+        }
+        
+        .stats {
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+        
+        .table-container {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.925rem;
+        }
+        
+        th {
+            background-color: #f1f5f9;
+            color: var(--accent);
+            font-weight: 600;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+        }
+        
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: top;
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        tr:hover {
+            background-color: #f8fafc;
+        }
+        
+        .tag {
+            display: inline-block;
+            padding: 0.25rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            background-color: var(--tag-bg);
+            color: var(--primary);
+            white-space: nowrap;
+        }
+        
+        .case-link {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        
+        .case-link:hover {
+            text-decoration: underline;
+        }
+        
+        .content-cell {
+            max-width: 350px;
+            max-height: 120px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-size: 0.875rem;
+            color: #475569;
+            background: #f8fafc;
+            padding: 0.5rem;
+            border-radius: 6px;
+            border: 1px solid #f1f5f9;
+        }
+        
+        .loading, .no-data {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>死刑案件裁判與不受理決議資料庫</h1>
+        <p>即時讀取伺服器端 <code>death_row_appeals_ultimate.csv</code> 資料</p>
+    </header>
+
+    <div class="controls">
+        <div class="search-box">
+            <label for="searchInput">關鍵字搜尋（姓名、案號、案由、內容）</label>
+            <input type="text" id="searchInput" placeholder="輸入關鍵字篩選..." onkeyup="filterData()">
+        </div>
+        <div class="filter-box">
+            <label for="categoryFilter">案件類別篩選</label>
+            <select id="categoryFilter" onchange="filterData()">
+                <option value="">全部類別</option>
+                <option value="程序裁定">程序裁定</option>
+                <option value="不受理決議">不受理決議</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="stats" id="statsCount">正在讀取資料庫...</div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>死囚姓名</th>
+                    <th>類別</th>
+                    <th>案號</th>
+                    <th>裁定時間</th>
+                    <th>送件時間</th>
+                    <th>案由</th>
+                    <th>主文 / 決議</th>
+                    <th>理由</th>
+                    <th>案件連結</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <tr><td colspan="9" class="loading">正在向伺服器請求 CSV 檔案，請稍候...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    let globalData = [];
+
+    // 簡易且穩健的 CSV 解析器（支援欄位內含雙引號與換行）
+    function parseCSV(text) {
+        let lines = [];
+        let row = [""];
+        let inQuotes = false;
+        
+        for (let i = 0; i < text.length; i++) {
+            let c = text[i];
+            let nextC = text[i + 1];
+            
+            if (c === '"') {
+                if (inQuotes && nextC === '"') {
+                    row[row.length - 1] += '"';
+                    i++;
+                } else {
+                    inQuotes = !inQuotes;
+                }
+            } else if (c === ',' && !inQuotes) {
+                row.push("");
+            } else if ((c === '\r' && nextC === '\n') || c === '\n') {
+                if (!inQuotes) {
+                    if (c === '\r') i++;
+                    lines.push(row);
+                    row = [""];
+                } else {
+                    row[row.length - 1] += "\n";
+                }
+            } else {
+                row[row.length - 1] += c;
+            }
+        }
+        if (row.length > 1 || row[0] !== "") {
+            lines.push(row);
+        }
+
+        if (lines.length === 0) return [];
+
+        let headers = lines[0].map(h => h.trim());
+        let result = [];
+
+        for (let i = 1; i < lines.length; i++) {
+            let currentLine = lines[i];
+            if (currentLine.length === headers.length) {
+                let obj = {};
+                for (let j = 0; j < headers.length; j++) {
+                    obj[headers[j]] = currentLine[j] ? currentLine[j].trim() : "";
+                }
+                result.push(obj);
+            }
+        }
+        return result;
+    }
+
+    // 頁面載入時自動透過 Fetch 讀取同目錄下的 CSV
+    window.addEventListener('DOMContentLoaded', () => {
+        fetch('death_row_appeals_ultimate.csv')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('無法讀取 CSV 檔案 (HTTP 狀態碼: ' + response.status + ')');
+                }
+                return response.text();
+            })
+            .then(text => {
+                globalData = parseCSV(text);
+                renderTable(globalData);
+            })
+            .catch(error => {
+                document.getElementById('tableBody').innerHTML = `<tr><td colspan="9" class="no-data">載入失敗：${error.message}。<br>請確認死檔 <code>death_row_appeals_ultimate.csv</code> 是否與本網頁放在同一個伺服器目錄下。</td></tr>`;
+                document.getElementById('statsCount').innerText = '讀取失敗';
+            });
+    });
+
+    function renderTable(data) {
+        const tbody = document.getElementById('tableBody');
+        const stats = document.getElementById('statsCount');
+        
+        stats.innerText = `顯示筆數：${data.length} 筆（總計 ${globalData.length} 筆）`;
+
+        if (data.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="9" class="no-data">沒有找到符合條件的紀錄。</td></tr>`;
+            return;
+        }
+
+        let html = '';
+        data.forEach(row => {
+            const name = row['死囚姓名'] || '';
+            const category = row['類別'] || '';
+            const caseNo = row['案號'] || '';
+            const decisionDate = row['裁定時間'] || '';
+            const filingDate = row['送件時間'] || '';
+            const cause = row['案由'] || '';
+            const decision = row['主文_決議'] || '';
+            const reason = row['理由'] || '';
+            const url = row['案件網址'] || '';
+
+            html += `
+                <tr>
+                    <td><strong>${escapeHtml(name)}</strong></td>
+                    <td><span class="tag">${escapeHtml(category)}</span></td>
+                    <td><strong>${escapeHtml(caseNo)}</strong></td>
+                    <td style="white-space: nowrap;">${escapeHtml(decisionDate)}</td>
+                    <td style="white-space: nowrap;">${escapeHtml(filingDate)}</td>
+                    <td><div class="content-cell">${escapeHtml(cause)}</div></td>
+                    <td><div class="content-cell">${escapeHtml(decision)}</div></td>
+                    <td><div class="content-cell">${escapeHtml(reason)}</div></td>
+                    <td>${url && url !== '無連結' ? `<a href="${escapeHtml(url)}" target="_blank" class="case-link">檢視原始網頁</a>` : '無'}</td>
+                </tr>
+            `;
+        });
+        tbody.innerHTML = html;
+    }
+
+    function filterData() {
+        const keyword = document.getElementById('searchInput').value.toLowerCase();
+        const category = document.getElementById('categoryFilter').value;
+
+        const filtered = globalData.filter(row => {
+            const matchKeyword = Object.values(row).some(val => 
+                String(val).toLowerCase().includes(keyword)
+            );
+            const matchCategory = category === "" || row['類別'] === category;
+            return matchKeyword && matchCategory;
+        });
+
+        renderTable(filtered);
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        return String(text)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+</script>
+
+</body>
+</html>

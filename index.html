@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>死刑犯憲法訴訟聲請與執行狀態即時分析儀表板</title>
+    <!-- 引入 PapaParse 用來完美解析 CSV -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --container-bg: #1e1e1e;
+            --text-main: #e0e0e0;
+            --text-muted: #9e9e9e;
+            --border-color: #333333;
+            --accent-blue: #3a7bd5;
+            --header-bg: #2a2a2a;
+            --row-hover: #252525;
+            --danger-text: #ef5350;
+            --success-text: #66bb6a;
+            --badge-executed-bg: rgba(239, 83, 80, 0.15);
+            --badge-executed-color: #ef5350;
+            --badge-unexecuted-bg: rgba(102, 187, 106, 0.15);
+            --badge-unexecuted-color: #66bb6a;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        h1, h2 {
+            text-align: center;
+            font-weight: 300;
+            letter-spacing: 1px;
+            margin-bottom: 30px;
+        }
+        h2 {
+            font-size: 1.2rem;
+            color: var(--accent-blue);
+            text-align: left;
+            border-left: 3px solid var(--accent-blue);
+            padding-left: 10px;
+            margin-top: 40px;
+            margin-bottom: 15px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background-color: var(--container-bg);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+        }
+        .stat-card h3 {
+            margin: 0 0 10px 0;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+        .stat-card .number {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--accent-blue);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: var(--container-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            margin-bottom: 30px;
+        }
+        th, td {
+            padding: 12px 20px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        th {
+            background-color: var(--header-bg);
+            color: var(--accent-blue);
+            font-weight: 500;
+            font-size: 0.95rem;
+            white-space: nowrap;
+        }
+        tr:last-child td {
+            border-bottom: none;
+        }
+        tr:hover td {
+            background-color: var(--row-hover);
+        }
+        .highlight {
+            color: var(--text-main);
+            font-weight: 500;
+        }
+        .badge-executed {
+            background-color: var(--badge-executed-bg);
+            color: var(--badge-executed-color);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .badge-unexecuted {
+            background-color: var(--badge-unexecuted-bg);
+            color: var(--badge-unexecuted-color);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .note {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 20px;
+        }
+        #loading {
+            text-align: center;
+            font-size: 1.2rem;
+            color: var(--accent-blue);
+            margin: 50px 0;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>死刑犯憲法訴訟聲請與執行狀態即時分析儀表板</h1>
+
+    <div id="loading">⏳ 正在讀取並分析 CSV 資料，請稍候...</div>
+
+    <div id="content" style="display: none;">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>總紀錄筆數</h3>
+                <div class="number" id="stat-total">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>涉及死囚/聲請人</h3>
+                <div class="number" id="stat-people">0 位</div>
+            </div>
+            <div class="stat-card">
+                <h3>已執行（已伏法）人數</h3>
+                <div class="number" id="stat-executed">0 位</div>
+            </div>
+            <div class="stat-card">
+                <h3>未執行人數</h3>
+                <div class="number" id="stat-unexecuted">0 位</div>
+            </div>
+        </div>
+
+        <h2>一、 最終結果／類別分類統計</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>類別結果</th>
+                    <th>案件數量</th>
+                    <th>佔比</th>
+                </tr>
+            </thead>
+            <tbody id="category-table-body">
+                <!-- 動態填入 -->
+            </tbody>
+        </table>
+
+        <h2>二、 各死囚聲請次數與執行狀態統計排名</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th width="10%">排名</th>
+                    <th width="35%">死囚姓名</th>
+                    <th width="25%">執行狀態</th>
+                    <th width="30%">聲請次數</th>
+                </tr>
+            </thead>
+            <tbody id="inmate-table-body">
+                <!-- 動態填入 -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="note">
+        資料來源：即時讀取同目錄下 death_row_appeals_ultimate.csv 檔案進行前端運算。
+    </div>
+</div>
+
+<script>
+    // 已執行名單（36人）
+    const executedInmates = new Set([
+        "黃麟凱", "翁仁賢", "李宏基", "鄭捷", "張俊宏", "洪晨耀", "柯世銘", "張文蔚", 
+        "管鐘演", "鍾德樹", "王志煌", "莊天祝", "王國華", "曾思儒", "洪明聰", "黃賢正", 
+        "陳金火", "廣德強", "戴德穎", "陳瑞欽", "陳東榮", "紀俊毅", "李嘉軒", "林金德", 
+        "張胞輝", "杜明郎", "杜明雄", "劉炎國", "鄧堅", "戴文慶", "王秀昉", "鄭金文", 
+        "曹添壽", "黃主旺", "王俊欽", "王裕隆"
+    ]);
+
+    // 加上時間戳記強制繞過瀏覽器快取，確保讀到最新上傳的 CSV
+    const csvUrl = 'death_row_appeals_ultimate.csv?t=' + Date.now();
+
+    Papa.parse(csvUrl, {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+        complete: function(results) {
+            const data = results.data;
+            processData(data);
+        },
+        error: function(err) {
+            document.getElementById('loading').innerHTML = '❌ 讀取 CSV 失敗，請確認該檔案與 HTML 是否在同一個資料夾，且已透過區域伺服器（Live Server）開啟。';
+            console.error(err);
+        }
+    });
+
+    function processData(data) {
+        const totalRecords = data.length;
+
+        // 1. 統計類別
+        const categoryCounts = {};
+        // 2. 統計死囚聲請次數
+        const inmateCounts = {};
+
+        data.forEach(row => {
+            const name = row['死囚姓名'] ? row['死囚姓名'].trim() : '未知';
+            const category = row['類別'] ? row['類別'].trim() : '未分類';
+
+            // 計算死囚次數
+            inmateCounts[name] = (inmateCounts[name] || 0) + 1;
+
+            // 計算類別次數
+            categoryCounts[category] = (categoryCounts[category] || 0) + 1;
+        });
+
+        const uniquePeopleCount = Object.keys(inmateCounts).length;
+
+        // 轉換死囚統計為陣列並排序（按聲請次數由多到少）
+        const sortedInmates = Object.entries(inmateCounts).map(([name, count]) => {
+            const isExecuted = executedInmates.has(name);
+            return { name, count, isExecuted };
+        }).sort((a, b) => b.count - a.count);
+
+        // 計算已執行與未執行人數
+        let executedCount = 0;
+        let unexecutedCount = 0;
+        sortedInmates.forEach(item => {
+            if (item.isExecuted) executedCount++;
+            else unexecutedCount++;
+        });
+
+        // 渲染頂部數據卡片
+        document.getElementById('stat-total').innerText = totalRecords;
+        document.getElementById('stat-people').innerText = uniquePeopleCount + ' 位';
+        document.getElementById('stat-executed').innerText = executedCount + ' 位';
+        document.getElementById('stat-unexecuted').innerText = unexecutedCount + ' 位';
+
+        // 渲染類別統計表格
+        const catTableBody = document.getElementById('category-table-body');
+        catTableBody.innerHTML = '';
+        Object.entries(categoryCounts).forEach(([cat, count]) => {
+            const pct = ((count / totalRecords) * 100).toFixed(1);
+            catTableBody.innerHTML += `
+                <tr>
+                    <td class="highlight">${cat}</td>
+                    <td>${count} 筆</td>
+                    <td>${pct}%</td>
+                </tr>
+            `;
+        });
+
+        // 渲染死囚聲請排名表格
+        const inmateTableBody = document.getElementById('inmate-table-body');
+        inmateTableBody.innerHTML = '';
+        sortedInmates.forEach((item, index) => {
+            const badgeClass = item.isExecuted ? 'badge-executed' : 'badge-unexecuted';
+            const badgeText = item.isExecuted ? '已執行（已伏法）' : '未執行';
+            inmateTableBody.innerHTML += `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td class="highlight">${item.name}</td>
+                    <td><span class="${badgeClass}">${badgeText}</span></td>
+                    <td>${item.count} 次</td>
+                </tr>
+            `;
+        });
+
+        // 隱藏讀取動畫，顯示內容
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('content').style.display = 'block';
+    }
+</script>
+</body>
+</html>
